@@ -6,8 +6,6 @@ import (
 
 type ThreadSafeList struct {
 	List     []interface{}
-	CurIndex uint32
-	Len      uint32
 	Lock     sync.Mutex
 }
 
@@ -15,15 +13,10 @@ func (list *ThreadSafeList) Pop() (pop interface{}, get bool) {
 
 	(*list).Lock.Lock()
 
-	if (*list).CurIndex == (*list).Len {
-		(*list).Lock.Unlock()
-		return 0, false
-	}
-
-	pop = (*list).List[(*list).CurIndex]
+	pop = (*list).List[0]
 	get = true
 
-	(*list).CurIndex++
+	(*list).List = (*list).List[1:]
 
 	(*list).Lock.Unlock()
 
@@ -31,27 +24,16 @@ func (list *ThreadSafeList) Pop() (pop interface{}, get bool) {
 }
 
 func (list *ThreadSafeList) Push(v interface{}) bool {
+
 	(*list).Lock.Lock()
 
-	if (*list).CurIndex < 0 {
-		panic("bug list index error")
-	}
-
-	if (*list).CurIndex == 0 {
-		(*list).List = append([]interface{}{v}, (*list).List...)
-		(*list).Len++
-
-		(*list).Lock.Unlock()
-		return true
-	}
-
-	(*list).CurIndex--
-	(*list).List[(*list).CurIndex] = v
+	(*list).List = append([]interface{}{v}, (*list).List...)
 
 	(*list).Lock.Unlock()
+
 	return true
 }
 
 func (list *ThreadSafeList) Size() int {
-	return int((*list).Len - (*list).CurIndex)
+	return len((*list).List)
 }
