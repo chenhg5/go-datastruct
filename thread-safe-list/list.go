@@ -28,15 +28,13 @@ func (list *ThreadSafeList) Pop() (pop interface{}, get bool) {
 	return
 }
 
-func (list *ThreadSafeList) Push(v interface{}) bool {
+func (list *ThreadSafeList) Push(v interface{}) {
 
 	(*list).Lock.Lock()
 
 	(*list).List = append([]interface{}{v}, (*list).List...)
 
 	(*list).Lock.Unlock()
-
-	return true
 }
 
 func (list *ThreadSafeList) Size() int {
