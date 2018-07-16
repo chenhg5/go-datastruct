@@ -13,6 +13,11 @@ func (list *ThreadSafeList) Pop() (pop interface{}, get bool) {
 
 	(*list).Lock.Lock()
 
+	if len((*list).List) == 0 {
+		(*list).Lock.Unlock()
+		return nil, false
+	}
+
 	pop = (*list).List[0]
 	get = true
 
